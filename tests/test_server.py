@@ -277,7 +277,8 @@ class ProjectManifestTests(unittest.TestCase):
         with mock.patch.object(server.sys, "frozen", True, create=True), \
              mock.patch.object(server.sys, "executable", str(Path(tempfile.gettempdir()) / "portable" / "app.exe")), \
              mock.patch.object(server.sys, "_MEIPASS", str(Path(tempfile.gettempdir()) / "internal"), create=True):
-            self.assertEqual(server.projects_root(), Path(tempfile.gettempdir()) / "portable" / "本机项目")
+            # Windows TEMP may use an 8.3 alias for the same directory.
+            self.assertEqual(server.projects_root(), (Path(tempfile.gettempdir()) / "portable" / "本机项目").resolve())
 
     def test_bambu_launch_uses_fixed_executable_and_one_file_argument(self):
         source = Path(tempfile.gettempdir()) / "part; calc.stl"
