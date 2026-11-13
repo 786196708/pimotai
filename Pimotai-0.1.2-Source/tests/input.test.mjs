@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {checkSTL,checkOBJ} from '../web/input-check.js';
+test('binary STL header is checked before loader allocation',()=>{const b=new ArrayBuffer(84);new DataView(b).setUint32(80,0xffffffff,true);assert.throws(()=>checkSTL(b),/长度/);const ok=new ArrayBuffer(134);new DataView(ok).setUint32(80,1,true);assert.doesNotThrow(()=>checkSTL(ok));assert.throws(()=>checkSTL(ok,0),/超过/);});
+test('ASCII STL validates triangle counts before parsing',()=>{const s='solid demo\nfacet normal 0 0 1\nouter loop\nvertex 0 0 0\nvertex 1 0 0\nvertex 0 1 0\nendloop\nendfacet\nendsolid demo';const a=new TextEncoder().encode(s);assert.doesNotThrow(()=>checkSTL(a.buffer));assert.throws(()=>checkSTL(a.buffer,0),/超限/);assert.throws(()=>checkSTL(new ArrayBuffer(10)),/不完整/);});
+test('OBJ polygon triangulation and continuation share a bounded budget',()=>{const s='v 0 0 0\nv 1 0 0\nv 1 1 0\nv 0 1 0\nf 1 2 \\\n3 4 # quad';assert.doesNotThrow(()=>checkOBJ(s,2));assert.throws(()=>checkOBJ(s,1),/过多|超过/);assert.throws(()=>checkOBJ('f 1 2 3 4',1),/超过/);assert.throws(()=>checkOBJ('v 0 0 0\nf 1 2'),/无效/);});
